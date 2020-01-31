@@ -24,7 +24,8 @@ void poly_ntt(poly *r);
 void poly_invntt(poly *r);
 void poly_mul_pointwise(poly *r, const poly *a);
 void poly_reduce(poly *r);
-void poly_div_montconstant(poly *r);
+void poly_mul_montconstant(poly *r);
+void poly_bitrev(poly *r);
 
 void poly_frombytes(poly *r, const unsigned char *a);
 void poly_frombytes_mul(poly *r, const unsigned char *a, const unsigned char *b);

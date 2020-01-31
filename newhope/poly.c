@@ -14,8 +14,9 @@
 static uint16_t flipabs(int16_t x)
 {
   int16_t r,m;
-
-  r = x - NEWHOPE_Q/2;
+  x -= (x>>14)*NEWHOPE_Q;
+  r = (x+((x>>15)&NEWHOPE_Q));
+  r = r - NEWHOPE_Q/2;
   m = r >> 15;
   return (r + m) ^ m;
 }
@@ -91,16 +92,18 @@ void poly_frombytes_mul(poly *r, const unsigned char *a, const unsigned char *b)
 **************************************************/
 void poly_tobytes(unsigned char *r, const poly *p)
 {
+  // poly_reduce(p);
+
   int i;
   for(i=0;i<NEWHOPE_N/4;i++)
   {
-    r[7*i+0] =  p->coeffs[4*i] & 0xff;
-    r[7*i+1] = (p->coeffs[4*i] >> 8) | (p->coeffs[4*i+1] << 6);
-    r[7*i+2] = (p->coeffs[4*i+1] >> 2);
-    r[7*i+3] = (p->coeffs[4*i+1] >> 10) | (p->coeffs[4*i+2] << 4);
-    r[7*i+4] = (p->coeffs[4*i+2] >> 4);
-    r[7*i+5] = (p->coeffs[4*i+2] >> 12) | (p->coeffs[4*i+3] << 2);
-    r[7*i+6] = (p->coeffs[4*i+3] >> 6);
+    r[7*i+0] =  (p->coeffs[4*i  ]) & 0xff;
+    r[7*i+1] = ((p->coeffs[4*i  ]) >> 8) | ((p->coeffs[4*i+1]) << 6);
+    r[7*i+2] = ((p->coeffs[4*i+1]) >> 2);
+    r[7*i+3] = ((p->coeffs[4*i+1]) >> 10) | ((p->coeffs[4*i+2]) << 4);
+    r[7*i+4] = ((p->coeffs[4*i+2]) >> 4);
+    r[7*i+5] = ((p->coeffs[4*i+2]) >> 12) | ((p->coeffs[4*i+3]) << 2);
+    r[7*i+6] = ((p->coeffs[4*i+3]) >> 6);
   }
 }
 
@@ -116,6 +119,8 @@ void poly_tobytes(unsigned char *r, const poly *p)
 **************************************************/
 int poly_tobytes_cmp(const unsigned char *r, const poly *a)
 {
+  // poly_reduce(p);
+
   unsigned char rc= 0;
 
   int i;
@@ -149,7 +154,7 @@ void poly_compress(unsigned char *r, const poly *p)
   for(i=0;i<NEWHOPE_N;i+=8)
   {
     for(j=0;j<8;j++)
-      t[j] = (((p->coeffs[i+j] << 3) + NEWHOPE_Q/2)/NEWHOPE_Q) & 0x7;
+      t[j] = ((((p->coeffs[i+j]) << 3) + NEWHOPE_Q/2)/NEWHOPE_Q) & 0x7;
 
     r[k]   =  t[0]       | (t[1] << 3) | (t[2] << 6);
     r[k+1] = (t[2] >> 2) | (t[3] << 1) | (t[4] << 4) | (t[5] << 7);
@@ -309,7 +314,7 @@ void poly_uniform_mul_s(poly *a, const unsigned char *seed)
         val = (buf[j] | ((uint16_t) buf[j+1] << 8));
         if(val < 5*NEWHOPE_Q)
         {
-          c[count++] = val;
+          c[count++] = (int16_t)(val - ((val>>14)*NEWHOPE_Q));
           ctr++;
         }
 
@@ -406,7 +411,7 @@ void poly_reduce(poly *r) {
 }
 
 
-extern void asm_div_montconstant(int16_t *r);
+extern void asm_mul_montconstant(int16_t *r);
 
 /*************************************************
 * Name:        poly_div_montconstant
@@ -415,8 +420,8 @@ extern void asm_div_montconstant(int16_t *r);
 *
 * Arguments:   - poly *r:       pointer to input/output polynomial
 **************************************************/
-void poly_div_montconstant(poly *r) {
-  asm_div_montconstant(r->coeffs);
+void poly_mul_montconstant(poly *r) {
+  asm_mul_montconstant(r->coeffs);
 }
 
 
@@ -438,7 +443,7 @@ void poly_add(poly *r, const poly *a)
 
 extern int16_t gammas_bitrev_montgomery[];
 extern void asm_ntt(int16_t*, const int16_t*);
-
+extern void bitrev(int16_t*);
 /*************************************************
 * Name:        poly_ntt
 *
@@ -453,7 +458,10 @@ void poly_ntt(poly *r)
   asm_ntt(r->coeffs, gammas_bitrev_montgomery);
 }
 
-
+void poly_bitrev(poly *r)
+{
+  bitrev(r->coeffs);
+}
 extern int16_t gammas_inv_montgomery[];
 extern void asm_invntt(int16_t*, const int16_t*);
 

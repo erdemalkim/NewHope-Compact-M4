@@ -15,14 +15,14 @@ DEFINES     = -DSTM32F4
 
 EXTRA_FLAGS ?=
 
-CFLAGS     += -O3 \
+CFLAGS     = -O3 \
               -Wall -Wextra -Wimplicit-function-declaration \
               -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes \
               -Wundef -Wshadow \
               -I$(OPENCM3DIR)/include \
               -fno-common $(ARCH_FLAGS) -MD $(DEFINES) $(EXTRA_FLAGS)
 
-LDFLAGS    += --static -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group \
+LDFLAGS    = --static -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group \
               -T$(LDSCRIPT) -nostartfiles -Wl,--gc-sections \
                $(ARCH_FLAGS) -L$(OPENCM3DIR)/lib -lm -l$(OPENCM3NAME)
 
@@ -41,19 +41,15 @@ IMPLEMENTATION_HEADERS = $(IMPLEMENTATION_PATH)/*.h
 
 
 .PHONY: clean all test speed stack hashing
-all:     test speed stack hashing
+all: info test speed stack hashing
 
-test:    $(BINPATH)/newhope512_test.bin \
-				 $(BINPATH)/newhope1024_test.bin
+test: $(BINPATH)/newhope512_test.bin $(BINPATH)/newhope1024_test.bin
 
-speed:   $(BINPATH)/newhope512_speed.bin \
-				 $(BINPATH)/newhope1024_speed.bin
+speed: $(BINPATH)/newhope512_speed.bin $(BINPATH)/newhope1024_speed.bin
 
-stack:   $(BINPATH)/newhope512_stack.bin \
-				 $(BINPATH)/newhope1024_stack.bin
+stack: $(BINPATH)/newhope512_stack.bin $(BINPATH)/newhope1024_stack.bin
 
-hashing: $(BINPATH)/newhope512_hashing.bin \
-				 $(BINPATH)/newhope1024_hashing.bin
+hashing: $(BINPATH)/newhope512_hashing.bin $(BINPATH)/newhope1024_hashing.bin
 
 $(BINPATH)/%.bin: $(ELFPATH)/%.elf
 	$(MKDIR) $(BINPATH)
@@ -61,12 +57,9 @@ $(BINPATH)/%.bin: $(ELFPATH)/%.elf
 	$(OBJCOPY) -S -Obinary $(ELFPATH)/$(*).elf $(BINPATH)/$(*).bin
 
 
-$(ELFPATH)/%.elf: $(TESTPATH)/test.c $(TESTPATH)/speed.c $(TESTPATH)/stack.c \
-	$(COMMONSOURCES) $(IMPLEMENTATION_SOURCES) $(IMPLEMENTATION_HEADERS) $(OPENCM3FILE)
+$(ELFPATH)/%.elf: $(TESTPATH)/test.c $(TESTPATH)/speed.c $(TESTPATH)/stack.c $(COMMONSOURCES) $(IMPLEMENTATION_SOURCES) $(IMPLEMENTATION_HEADERS) $(OPENCM3FILE)
 	$(MKDIR) $(ELFPATH)
-	$(CC) -o $@ $(CFLAGS) -DNEWHOPE_N=$(shell echo $@ | grep -o '[[:digit:]]*') \
-	$(TESTPATH)/$(shell echo $@ | grep -o -P '(?<=_).*(?=.elf)').c \
-	$(COMMONSOURCES) $(IMPLEMENTATION_SOURCES) $(COMMONINCLUDES) $(LDFLAGS)
+	$(CC) -o $@ $(CFLAGS) -DNEWHOPE_N=$(shell echo $@ | grep -o '[[:digit:]]*') $(TESTPATH)/$(shell echo $@ | grep -o -P '(?<=_).*(?=.elf)').c $(COMMONSOURCES) $(IMPLEMENTATION_SOURCES) $(COMMONINCLUDES) $(LDFLAGS)
 
 $(ELFPATH)/%_hashing.elf: $(TESTPATH)/hashing.c \
 	$(COMMONSOURCES) $(IMPLEMENTATION_SOURCES) $(IMPLEMENTATION_HEADERS) $(OPENCM3FILE)
@@ -75,14 +68,8 @@ $(ELFPATH)/%_hashing.elf: $(TESTPATH)/hashing.c \
 	-DPROFILE_HASHING $(TESTPATH)/hashing.c \
 	$(COMMONSOURCES) $(IMPLEMENTATION_SOURCES) $(COMMONINCLUDES) $(LDFLAGS)
 
-
-$(OBJPATH)/%.o: $(IMPLEMENTATION_PATH)/%.c $(IMPLEMENTATION_HEADERS)
-	$(MKDIR) $(OBJPATH)
-	$(CC) -o $@ -c $(CFLAGS) -I$(IMPLEMENTATION_PATH) $(COMMONINCLUDES) $<
-
-$(OBJPATH)/%.o: $(IMPLEMENTATION_PATH)/%.S $(IMPLEMENTATION_HEADERS)
-	$(MKDIR) $(OBJPATH)
-	$(CC) -o $@ -c $(CFLAGS) -I$(IMPLEMENTATION_PATH) $(COMMONINCLUDES) $<
+info:
+	echo $(IMPLEMENTATION_SOURCES) $(COMMONSOURCES) $(BINPATH) $(ELFPATH)
 
 
 runAll:	runTest	runSpeed runStack runHashing runSize

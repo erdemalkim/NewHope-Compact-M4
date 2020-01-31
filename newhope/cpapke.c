@@ -45,10 +45,10 @@ void cpapke_keypair(unsigned char *pk,
 
     poly_getnoise(&shat, noiseseed, 0);
     poly_ntt(&shat);
+
     poly_tobytes(sk, &shat);
 
     poly_uniform_mul_s(&shat, publicseed);
-    poly_div_montconstant(&shat);
     poly_invntt(&shat);
 
     poly_addnoise(&shat, noiseseed, 1);
@@ -86,15 +86,15 @@ void cpapke_enc(unsigned char *c,
     poly_frombytes(&vprime,pk);
     poly_mul_pointwise(&vprime, &sprime);
     poly_invntt(&vprime);
-
-    poly_addnoise(&vprime, coin, 1);
+    poly_bitrev(&vprime);
+    poly_addnoise(&vprime, coin, 2);
 
     poly_frommsg(&vprime, m); // add message
-
     poly_reduce(&vprime);
+
     poly_compress(c+NEWHOPE_POLYBYTES,&vprime);
 
-    poly_getnoise(eprime, coin, 2);
+    poly_getnoise(eprime, coin, 1);
     poly_ntt(eprime);
 
     memcpy(publicseed,pk+NEWHOPE_POLYBYTES,NEWHOPE_SYMBYTES);
@@ -139,15 +139,14 @@ unsigned char cpapke_enc_cmp(const unsigned char *c,
     poly_frombytes(&vprime,pk);
     poly_mul_pointwise(&vprime, &sprime);
     poly_invntt(&vprime);
-
-    poly_addnoise(&vprime, coin, 1);
+    poly_bitrev(&vprime);
+    poly_addnoise(&vprime, coin, 2);
 
     poly_frommsg(&vprime, m); // add message
-
     poly_reduce(&vprime);
     rc |= poly_compress_cmp(c+NEWHOPE_POLYBYTES,&vprime);
 
-    poly_getnoise(eprime, coin, 2);
+    poly_getnoise(eprime, coin, 1);
     poly_ntt(eprime);
 
     memcpy(publicseed,pk+NEWHOPE_POLYBYTES,NEWHOPE_SYMBYTES);
@@ -181,9 +180,9 @@ void __attribute__ ((noinline)) cpapke_dec(unsigned char *m,
 
     poly_frombytes_mul(&tmp, sk, c);
     poly_invntt(&tmp);
+    poly_bitrev(&tmp);
 
     poly_decompress_sub(&tmp, c+NEWHOPE_POLYBYTES);
-
     poly_reduce(&tmp);
     poly_tomsg(m, &tmp);
 }

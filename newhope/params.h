@@ -1,7 +1,6 @@
 #ifndef PARAMS_H
 #define PARAMS_H
 
-// #define NEWHOPE_N 512
 #ifndef NEWHOPE_N
 #define NEWHOPE_N 1024
 #endif
