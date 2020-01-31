@@ -41,7 +41,7 @@ IMPLEMENTATION_HEADERS = $(IMPLEMENTATION_PATH)/*.h
 
 
 .PHONY: clean all test speed stack hashing
-all: info test speed stack hashing
+all: test speed stack hashing
 
 test: $(BINPATH)/newhope512_test.bin $(BINPATH)/newhope1024_test.bin
 
@@ -67,10 +67,6 @@ $(ELFPATH)/%_hashing.elf: $(TESTPATH)/hashing.c \
 	$(CC) -o $@ $(CFLAGS) -DNEWHOPE_N=$(shell echo $@ | grep -o '[[:digit:]]*') \
 	-DPROFILE_HASHING $(TESTPATH)/hashing.c \
 	$(COMMONSOURCES) $(IMPLEMENTATION_SOURCES) $(COMMONINCLUDES) $(LDFLAGS)
-
-info:
-	echo $(IMPLEMENTATION_SOURCES) $(COMMONSOURCES) $(BINPATH) $(ELFPATH)
-
 
 runAll:	runTest	runSpeed runStack runHashing runSize
 
