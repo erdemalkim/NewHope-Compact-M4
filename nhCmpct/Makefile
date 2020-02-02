@@ -66,14 +66,14 @@ $(BINPATH)/%.bin: $(ELFPATH)/%.elf
 	$(OBJCOPY) -S -Obinary $(ELFPATH)/$(*).elf $(BINPATH)/$(*).bin
 
 
-$(ELFPATH)/%.elf: $(TESTPATH)/test.c $(TESTPATH)/speed.c $(TESTPATH)/stack.c \
+$(ELFPATH)/%.elf: $(TESTPATH)/test.c $(TESTPATH)/speed.c $(TESTPATH)/stack.c $(OPENCM3FILE) \
 	$(COMMONSOURCES) $(IMPLEMENTATION_SOURCES) $(IMPLEMENTATION_HEADERS) $(OPENCM3FILE)
 	$(MKDIR) $(ELFPATH)
 	$(CC) -o $@ $(CFLAGS) $(FLTO) -DNEWHOPE_N=$(shell echo $@ | grep -o '[[:digit:]]*') \
 	$(TESTPATH)/$(shell echo $@ | grep -o -P '(?<=_).*(?=.elf)').c \
 	$(COMMONSOURCES) $(IMPLEMENTATION_SOURCES) $(COMMONINCLUDES) $(LDFLAGS) $(FLTO)
 
-$(ELFPATH)/%_hashing.elf: $(TESTPATH)/hashing.c \
+$(ELFPATH)/%_hashing.elf: $(TESTPATH)/hashing.c $(OPENCM3FILE) \
 	$(COMMONSOURCES) $(IMPLEMENTATION_SOURCES) $(IMPLEMENTATION_HEADERS) $(OPENCM3FILE)
 	$(MKDIR) $(ELFPATH)
 	$(CC) -o $@ $(CFLAGS) $(FLTO) -DNEWHOPE_N=$(shell echo $@ | grep -o '[[:digit:]]*') \
@@ -89,6 +89,19 @@ $(OBJPATH)/%.o: $(IMPLEMENTATION_PATH)/%.S $(IMPLEMENTATION_HEADERS)
 	$(MKDIR) $(OBJPATH)
 	$(CC) -o $@ -c $(CFLAGS) -I$(IMPLEMENTATION_PATH) $(COMMONINCLUDES) $<
 
+
+$(OPENCM3FILE):
+	@if [ -z $(shell ls -A $(OPENCM3DIR)) ] ; then \
+		printf "######## ERROR ########\n"; \
+		printf "\tlibopencm3 is not initialized.\n"; \
+		printf "\tPlease run (in the root directory):\n"; \
+		printf "\t$$ git submodule init\n"; \
+		printf "\t$$ git submodule update\n"; \
+		printf "\tbefore running make.\n"; \
+		printf "######## ERROR ########\n"; \
+		exit 1; \
+		fi
+	make -C $(OPENCM3DIR)
 
 runAll:	runTest	runSpeed runStack runHashing runSize
 
