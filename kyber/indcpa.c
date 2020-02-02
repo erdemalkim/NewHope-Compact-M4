@@ -1,5 +1,6 @@
 #include "indcpa.h"
 #include "ntt.h"
+#include "params.h"
 #include "poly.h"
 #include "polyvec.h"
 #include "randombytes.h"
@@ -98,7 +99,11 @@ void indcpa_keypair(unsigned char *pk, unsigned char *sk) {
         poly_tobytes(pk+i*KYBER_POLYBYTES, &pkp);
     }
 
+#ifdef SMALL_SECRET_KEY
+    memcpy(sk, noiseseed, KYBER_SYMBYTES);
+#else
     polyvec_tobytes(sk, &skpv);
+#endif
     memcpy(pk + KYBER_POLYVECBYTES, publicseed, KYBER_SYMBYTES); // Pack the public seed in the public key
 }
 
@@ -244,12 +249,30 @@ void __attribute__ ((noinline)) indcpa_dec(unsigned char *m,
 
     poly_unpackdecompress(&mp, c, 0);
     poly_ntt(&mp);
+
+#ifdef SMALL_SECRET_KEY
+    poly skp;
+
+    unsigned char nonce = 0;
+    poly_getnoise(&skp, sk, nonce++);
+    poly_ntt(&skp);
+    poly_basemul(&mp, &mp, &skp);
+#else
     poly_frombytes_mul(&mp, sk);
+#endif
+
     for(int i = 1; i < KYBER_K; i++) {
         poly_unpackdecompress(&bp, c, i);
         poly_ntt(&bp);
+
+#ifdef SMALL_SECRET_KEY
+        poly_getnoise(&skp, sk, nonce++);
+        poly_ntt(&skp);
+        poly_basemul_acc(&mp, &bp, &skp);
+#else
         poly_frombytes_mul(&bp, sk + i*KYBER_POLYBYTES);
         poly_add(&mp, &mp, &bp);
+#endif
     }
 
     poly_invntt(&mp);

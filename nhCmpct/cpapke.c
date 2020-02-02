@@ -1,5 +1,6 @@
 #include "cpapke.h"
 #include "api.h"
+#include "params.h"
 #include "poly.h"
 #include "randombytes.h"
 #include "fips202.h"
@@ -47,7 +48,12 @@ void cpapke_keypair(unsigned char *pk,
 
   poly_getnoise(&shat, noiseseed, 0);
   poly_ntt(&shat);
+
+#ifdef SMALL_SECRET_KEY
+  memcpy(sk, noiseseed, NEWHOPE_SYMBYTES);
+#else
   poly_tobytes(sk, &shat);
+#endif
 
   poly_uniform_mul_s(&shat, publicseed);
   poly_div_montconstant(&shat);
@@ -177,7 +183,17 @@ void __attribute__ ((noinline)) cpapke_dec(unsigned char *m,
 {
   poly tmp;
 
-  poly_frombytes_mul(&tmp,sk,c);
+#ifdef SMALL_SECRET_KEY
+  poly shat;
+  poly_getnoise(&shat, sk, 0);
+  poly_ntt(&shat);
+
+  poly_frombytes(&tmp, c);
+  poly_basemul(&tmp, &shat);
+#else
+  poly_frombytes_mul(&tmp, sk, c);
+#endif
+
   poly_invntt(&tmp);
   poly_decompress_sub(&tmp, c+NEWHOPE_POLYBYTES);
 
