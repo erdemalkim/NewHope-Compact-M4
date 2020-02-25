@@ -73,7 +73,7 @@ asm_frommont:
   poly6       .req r7
   poly7       .req r8
   loop        .req r9
-  constant    .req r11
+  constant    .req r10
   qinv        .req r11
   q           .req r11
   tmp         .req r12

@@ -91,10 +91,20 @@ void indcpa_keypair(unsigned char *pk, unsigned char *sk) {
 
     for (i = 0; i < KYBER_K; i++) {
         matacc(&pkp, &skpv, i, publicseed, 0);
+#ifdef OPTIMIZE_STACK
         poly_invntt(&pkp);
 
         poly_addnoise(&pkp, noiseseed, nonce++);
         poly_ntt(&pkp);
+#else
+        poly_frommont(&pkp);
+
+        poly e;
+        poly_getnoise(&e, noiseseed, nonce++);
+        poly_ntt(&e);
+        poly_add(&pkp, &pkp, &e);
+        poly_reduce(&pkp);
+#endif
 
         poly_tobytes(pk+i*KYBER_POLYBYTES, &pkp);
     }

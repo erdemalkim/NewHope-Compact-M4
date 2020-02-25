@@ -12,7 +12,12 @@
 **********************************************************/
 const int16_t asm_gammas_montgomery[NEWHOPE_NTT_LENGTH] = {
 // 1 & 2 & 3 layers
-2571, 2970, 1812, 1493, 1422, 287, 202,
+#ifdef OPTIMIZE_STACK
+2571,
+#else
+1729,
+#endif
+2970, 1812, 1493, 1422, 287, 202,
 // 1st loop of 4 & 5 & 6 & 7 layers
 3158, 573, 2004, 1223, 652, 2777, 1015, 2226, 430, 555, 843, 2078, 871, 1550, 105,
 // 2nd loop of 4 & 5 & 6 & 7 layers
@@ -103,7 +108,12 @@ const int16_t asm_gammas_inv_montgomery[NEWHOPE_NTT_LENGTH] = {
 **********************************************************/
 const int16_t asm_gammas_montgomery[NEWHOPE_NTT_LENGTH] = {
 // 1 & 2 & 3 layers
-2424, 1886, 1937, 1715, 2644, 2833, 2753,
+#ifdef OPTIMIZE_STACK
+2424,
+#else
+2735,
+#endif
+1886, 1937, 1715, 2644, 2833, 2753,
 // 1st loop of 4 & 5 & 6 & 7 layers
 16, 1024, 978, 1278, 910, 2147, 1004, 2286, 2845, 919, 2721, 2409, 2186, 728, 3126,
 // 2nd loop of 4 & 5 & 6 & 7 layers

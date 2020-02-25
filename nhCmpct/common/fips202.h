@@ -76,7 +76,7 @@ void sha3_256_inc_init(sha3_256incctx *state);
 void sha3_256_inc_absorb(sha3_256incctx *state, const uint8_t *input, size_t inlen);
 void sha3_256_inc_finalize(uint8_t *output, sha3_256incctx *state);
 
-void sha3_256(uint8_t *output, const uint8_t *input, size_t inlen);
+void sha3_256(uint8_t *output, const uint8_t *input, size_t inlen) __attribute__((optimize("-O2")));
 
 void sha3_384_inc_init(sha3_384incctx *state);
 void sha3_384_inc_absorb(sha3_384incctx *state, const uint8_t *input, size_t inlen);

@@ -14,14 +14,17 @@ FLTO        = -flto
 ARCH_FLAGS  = -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16
 DEFINES     = -DSTM32F4
 
-EXTRA_FLAGS ?=
+FLAG1 ?=
+FLAG2 ?=
+FLAG3 ?=
+FLAG4 ?=
 
 CFLAGS     += -O3 \
               -Wall -Wextra -Wimplicit-function-declaration \
               -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes \
               -Wundef -Wshadow \
               -I$(OPENCM3DIR)/include \
-              -fno-common $(ARCH_FLAGS) -MD $(DEFINES) $(EXTRA_FLAGS)
+              -fno-common $(ARCH_FLAGS) -MD $(DEFINES) $(FLAG1) $(FLAG2) $(FLAG3) $(FLAG4)
 
 LDFLAGS    += --static -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group \
               -T$(LDSCRIPT) -nostartfiles -Wl,--gc-sections \
@@ -126,7 +129,9 @@ runHashing:
 	python3 $(TESTPATH)/read_guest.py $(BINPATH)/nhCmpct1024_hashing.bin
 
 runSize:
-	python3 size.py
+	python3 $(TESTPATH)/size.py NewHope-Compact512 -DNEWHOPE_N=512 $(FLAG1) $(FLAG2) $(FLAG3)
+	python3 $(TESTPATH)/size.py NewHope-Compact768 -DNEWHOPE_N=768 $(FLAG1) $(FLAG2) $(FLAG3)
+	python3 $(TESTPATH)/size.py NewHope-Compact1024 -DNEWHOPE_N=1024 $(FLAG1) $(FLAG2) $(FLAG3)
 
 clean:
 	-rm -rf $(BINPATH)

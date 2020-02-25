@@ -56,11 +56,20 @@ void cpapke_keypair(unsigned char *pk,
 #endif
 
   poly_uniform_mul_s(&shat, publicseed);
+
+#ifdef OPTIMIZE_STACK
   poly_div_montconstant(&shat);
   poly_invntt(&shat);
 
   poly_addnoise(&shat, noiseseed, 1);
   poly_ntt(&shat);
+#else
+  poly ehat;
+  poly_getnoise(&ehat, noiseseed, 1);
+  poly_ntt(&ehat);
+  poly_add(&shat, &ehat);
+  poly_reduce(&ehat); 
+#endif
 
   encode_pk(pk, &shat, publicseed);
 }

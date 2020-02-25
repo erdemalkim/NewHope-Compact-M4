@@ -27,9 +27,22 @@
 #define KYBER_POLYVECCOMPRESSEDBYTES (KYBER_K * 352)
 #endif
 
+/***************************************************************
+********************** Optimization Flags **********************
+****************************************************************/
 // In order to enable secret key size optimization uncomment following macro
-// or call 'make EXTRA_FLAGS=-DSMALL_SECRET_KEY'.
+// or call 'make FLAG1=-DSMALL_SECRET_KEY'.
 // #define SMALL_SECRET_KEY
+
+// To use rept, uncomment following macro or call 'make FLAG1=-DUSE_REPT',
+// it will change most of the loops in assembly implementations to rept.
+// It will increase code size while reducing the runtime.
+// #define USE_REPT
+
+// To use stack usage optimization during key generation uncomment following macro
+// or 'make FLAG1=-DOPTIMIZE_STACK'.When it is not selected, it will perform
+// the addition in NTT domain instead of normal domain.
+// #define OPTIMIZE_STACK
 
 #define KYBER_INDCPA_MSGBYTES       KYBER_SYMBYTES
 #define KYBER_INDCPA_PUBLICKEYBYTES (KYBER_POLYVECBYTES + KYBER_SYMBYTES)

@@ -1,5 +1,6 @@
 #include "macros.i"
 #include "macros_ntt.i"
+#include "params.h"
 
 .syntax unified
 .cpu cortex-m4
@@ -9,9 +10,13 @@
 .macro doublebutterfly_first_stage a0, a1, twiddle, tmp, tmp2, q, qinv
   smulbb \tmp, \a1, \twiddle
   smultb \tmp2, \a1, \twiddle
+#ifdef OPTIMIZE_STACK
   montgomery \q, \qinv, \tmp, \twiddle
   montgomery \q, \qinv, \tmp2, \tmp
   pkhtb \tmp2, \tmp, \twiddle, asr#16
+#else
+  pkhbt \tmp2, \tmp, \tmp2, lsl#16
+#endif
   uadd16 \a1, \a0, \a1
   usub16 \a1, \a1, \tmp2
   uadd16 \a0, \a0, \tmp2
@@ -71,8 +76,13 @@ asm_ntt:
     // Stage 1
     ldrh twiddle, [twiddle_ptr]
 #if   (NEWHOPE_N == 512 || NEWHOPE_N == 1024)
+#ifdef OPTIMIZE_STACK
     two_doublebutterfly b, b, poly0, poly4, poly1, poly5, twiddle, tmp, tmp2, q, qinv
     two_doublebutterfly b, b, poly2, poly6, poly3, poly7, twiddle, tmp, tmp2, q, qinv
+#else
+    two_doublebutterfly_no_montgomery poly0, poly4, poly1, poly5, twiddle, tmp, tmp2
+    two_doublebutterfly_no_montgomery poly2, poly6, poly3, poly7, twiddle, tmp, tmp2
+#endif
 #elif (NEWHOPE_N == 768)
     doublebutterfly_first_stage poly0, poly4, twiddle, tmp, tmp2, q, qinv
     ldrh twiddle, [twiddle_ptr]

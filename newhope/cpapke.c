@@ -1,6 +1,7 @@
 #include "api.h"
 #include "cpapke.h"
 #include "fips202.h"
+#include "params.h"
 #include "poly.h"
 #include "randombytes.h"
 #include <stdio.h>
@@ -49,10 +50,19 @@ void cpapke_keypair(unsigned char *pk,
     poly_tobytes(sk, &shat);
 
     poly_uniform_mul_s(&shat, publicseed);
+
+#ifdef OPTIMIZE_STACK
     poly_invntt(&shat);
 
     poly_addnoise(&shat, noiseseed, 1);
     poly_ntt(&shat);
+#else
+    poly ehat;
+    poly_getnoise(&ehat, noiseseed, 1);
+    poly_ntt(&ehat);
+    poly_add(&shat, &ehat);
+    poly_reduce(&ehat);
+#endif
 
     encode_pk(pk, &shat, publicseed);
 }

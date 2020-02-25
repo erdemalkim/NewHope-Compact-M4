@@ -13,14 +13,17 @@ MKDIR       = mkdir -p
 ARCH_FLAGS  = -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -flto
 DEFINES     = -DSTM32F4
 
-EXTRA_FLAGS ?=
+FLAG1 ?=
+FLAG2 ?=
+FLAG3 ?=
+FLAG4 ?=
 
 CFLAGS     += -O3 \
               -Wall -Wextra -Wimplicit-function-declaration \
               -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes \
               -Wundef -Wshadow \
               -I$(OPENCM3DIR)/include \
-              -fno-common $(ARCH_FLAGS) -MD $(DEFINES) $(EXTRA_FLAGS)
+              -fno-common $(ARCH_FLAGS) -MD $(DEFINES) $(FLAG1) $(FLAG2) $(FLAG3) $(FLAG4)
 
 LDFLAGS    += --static -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group \
               -T$(LDSCRIPT) -nostartfiles -Wl,--gc-sections \
@@ -126,7 +129,9 @@ runHashing:
 	python3 $(TESTPATH)/read_guest.py $(BINPATH)/kyber1024_hashing.bin
 
 runSize:
-	python3 size.py
+	python3 $(TESTPATH)/size.py Kyber512 -DKYBER_P=512 $(FLAG1) $(FLAG2) $(FLAG3)
+	python3 $(TESTPATH)/size.py Kyber768 -DKYBER_P=768 $(FLAG1) $(FLAG2) $(FLAG3)
+	python3 $(TESTPATH)/size.py Kyber1024 -DKYBER_P=1024 $(FLAG1) $(FLAG2) $(FLAG3)
 
 clean:
 	-rm -rf $(BINPATH)

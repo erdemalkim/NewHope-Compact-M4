@@ -2,6 +2,7 @@
 #define MACROS_NTT_I
 
 #include "macros.i"
+#include "params.h"
 
 .macro doublebutterfly tb1, tb2, a0, a1, twiddle, tmp, tmp2, q, qinv
   smulb\tb1 \tmp, \a1, \twiddle
@@ -22,9 +23,13 @@
   smultb \tmp, \a0, \twiddle
   smultb \tmp2, \a1, \twiddle
   pkhbt \a1, \a0, \a1, lsl#16
-  montgomery \q, \qinv, \tmp, \a0 
+#ifdef OPTIMIZE_STACK
+  montgomery \q, \qinv, \tmp, \a0
   montgomery \q, \qinv, \tmp2, \tmp
-  pkhtb \tmp2, \tmp, \a0, asr#16 
+  pkhtb \tmp2, \tmp, \a0, asr#16
+#else
+  pkhbt \tmp2, \tmp, \tmp2, lsl#16  
+#endif
   usub16 \tmp, \a1, \tmp2
   uadd16 \tmp2, \a1, \tmp2
   pkhbt \a0, \tmp2, \tmp, lsl#16

@@ -3,7 +3,12 @@
 #if (NEWHOPE_N == 512)
 int16_t gammas_bitrev_montgomery[NEWHOPE_N]={
 // first chunk
-4401, 11208, 11060, 6275, 5329, 2530, 4342, 586,
+#ifdef OPTIMIZE_STACK
+4401,
+#else
+1479,
+#endif
+11208, 11060, 6275, 5329, 2530, 4342, 586,
 6399, 9710, 2812, 6464, 1591, 7538, 5266,
 // second chunk
 1875, 10578, 11857, 4407, 100, 4783, 12241, 8401,
@@ -145,7 +150,12 @@ int16_t gammas_inv_montgomery[NEWHOPE_N]={
 #elif (NEWHOPE_N == 1024)
 int16_t gammas_bitrev_montgomery[NEWHOPE_N]={
 // first chunk
-7888, 11060, 11208, 6960, 6275, 4342, 9759, 1591,
+#ifdef OPTIMIZE_STACK
+7888,
+#else
+-1479,
+#endif
+11060, 11208, 6960, 6275, 4342, 9759, 1591,
 586, 9477, 7538, 6399, 5825, 5266, 9710,
 // second chunk
 1134, 10414, 12210, 12189, 6240, 432, 5569, 11061,

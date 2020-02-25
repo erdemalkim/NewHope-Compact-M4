@@ -18,7 +18,6 @@
   doublemontgomery \a7, \tmp, \tmp2, \q, \qinv, \montconst
 .endm
 
-
 .macro doublebarrett_newhope a, tmp, tmp2, q, barrettconst
   smulbb \tmp, \a, \barrettconst
   smultb \tmp2, \a, \barrettconst
@@ -151,7 +150,7 @@ asm_ntt:
 #endif
 
 #ifdef USE_REPT
-  .rept #loopcount2
+  .rept loopcount2
 #else
   movw tmp, #loopcount2
   2:
